@@ -1,3 +1,5 @@
+package wordsvirtuoso
+
 import java.io.File
 import kotlin.random.Random
 
@@ -7,13 +9,13 @@ lateinit var listOfAllWords: List<String>
 lateinit var secretWord: String
 
 fun main(args: Array<String>) {
-    val checkedArgs = checkInput(args)
+    val checkedArgs = checkArguments(args)
     println(checkedArgs)
     if (checkedArgs == "Words Virtuoso") guessWord()
 }
 
 //проверка входного файла и слов, находящихся в нем
-fun checkInput(args: Array<String>): String {
+fun checkArguments(args: Array<String>): String {
     if (args.size != 2) return "Error: Wrong number of arguments."
     for (i in args.indices) {
         if (!args[i].isInTree()) return "Error: The ${if (i == 1) "candidate " else ""}words file ${args[i]} doesn't exist."
@@ -22,11 +24,11 @@ fun checkInput(args: Array<String>): String {
         val count = namesOfFile[i].findCountOfInvalidWords()
         if (count != 0) return "Error: $count invalid words were found in the ${args[i]} file."
     }
+    listOfCandidatesWords = File(namesOfFile[1]).readLines().map { it.lowercase() }
+    listOfAllWords = File(namesOfFile[0]).readLines().map { it.lowercase() }
+    secretWord = listOfCandidatesWords[Random.nextInt(0, listOfCandidatesWords.size)]
     val countOfWords = countContainWords()
     if (countOfWords > 0) return "Error: $countOfWords candidate words are not included in the ${args[0]} file."
-    listOfCandidatesWords = File(namesOfFile[1]).readLines()
-    listOfAllWords = File(namesOfFile[0]).readLines()
-    secretWord = listOfCandidatesWords[Random.nextInt(0, listOfCandidatesWords.size)]
     return "Words Virtuoso"
 }
 
@@ -74,8 +76,7 @@ fun String.isInvalidInput(): Boolean =
     this.length != 5 || this.lowercase().contains("[^a-z]+".toRegex()) || this.lowercase().toSet().size != 5
 
 // проверка, что все слова - кандидаты имеются в файле с общими словами
-fun countContainWords(): Int =
-    File(namesOfFile[1]).readLines().let { it.size - File(namesOfFile[0]).readLines().intersect(it.toSet()).size }
+fun countContainWords(): Int = listOfCandidatesWords.let { it.size - listOfAllWords.intersect(it.toSet()).size }
 
 //проверка угадывающего слова на валидность
 fun checkInput(input: String): String {
@@ -95,3 +96,4 @@ fun isGuess(input: String): Boolean = input == secretWord
 fun processWord(input: String): String = input.mapIndexed { i, c ->
     if (c == secretWord[i]) c.uppercase().single() else if (secretWord.contains(c)) c else '_'
 }.joinToString("")
+

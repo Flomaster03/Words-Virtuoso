@@ -1,3 +1,5 @@
+package wordsvirtuoso
+
 import java.io.File
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -29,12 +31,14 @@ fun checkInput(args: Array<String>): String {
     //если проверки пройдены, заполняются списки с общими словами и кандидатами, загадывается секретное слово
     listOfCandidatesWords = File(namesOfFile[1]).readLines()
     listOfAllWords = File(namesOfFile[0]).readLines()
-    secretWord = listOfCandidatesWords[Random.nextInt(0, listOfCandidatesWords.size)]
+    secretWord = listOfCandidatesWords[Random.nextInt(0, listOfCandidatesWords.size)].lowercase()
+    //  fileOfAttempts.writeText("\n") // создание файла с попытками угадать слово
     return "Words Virtuoso"
 }
 
 //обработка и проверка пользовательского слова
 fun processWord() {
+    listOfAttempts.clear()
     val startTime = System.currentTimeMillis()
     while (true) {
         countMoves++
@@ -49,12 +53,19 @@ fun processWord() {
             continue
         } else {
             processWord(input)
-            listOfAttempts.forEach { arr -> arr.forEach { print(it) }.run { println() } }
+
+            for (i in listOfAttempts) {
+                for (j in i) {
+                    print(j)
+                }
+               println()
+            }
             if (input == secretWord) {
                 processWin(startTime)
                 break
             } else {
-                println("\n\u001B[38:5:0:48:5:14m${listNonGuessLetters.toList().sorted().joinToString("")}\u001B[0m")
+                val str = listNonGuessLetters.toList().sorted().joinToString("")
+                println("\u001B[48:5:14m$str\u001B[0m")
             }
         }
     }
@@ -83,8 +94,8 @@ fun String.isInvalidInput(): Boolean =
     this.length != 5 || this.lowercase().contains("[^a-z]+".toRegex()) || this.lowercase().toSet().size != 5
 
 // проверка, что все слова - кандидаты имеются в файле с общими словами
-fun countContainWords(): Int =
-    File(namesOfFile[1]).readLines().let { it.size - File(namesOfFile[0]).readLines().intersect(it.toSet()).size }
+fun countContainWords(): Int = File(namesOfFile[1]).readLines().map { it.lowercase() }
+    .let { it.size - File(namesOfFile[0]).readLines().map { it.lowercase() }.intersect(it.toSet()).size }
 
 //проверка угадывающего слова на валидность
 fun checkWord(input: String): String {
@@ -102,10 +113,10 @@ fun processWord(input: String) {
     val arr = Array(5) { "" }
     input.forEachIndexed { i, c ->
         when {
-            c == secretWord[i] -> arr[i] = "\u001B[38:5:0:48:5:10m${c.uppercase()}\u001B[0m"
-            secretWord.contains(c) -> arr[i] = "\u001B[38:5:0:48:5:11m${c.uppercase()}\u001B[0m"
+            c == secretWord[i] -> arr[i] = "\u001B[48:5:10m${c.uppercase()}\u001B[0m"
+            secretWord.contains(c) -> arr[i] = "\u001B[48:5:11m${c.uppercase()}\u001B[0m"
             else -> {
-                arr[i] = "\u001B[38:5:0:48:5:7m${c.uppercase()}\u001B[0m"
+                arr[i] = "\u001B[48:5:7m${c.uppercase()}\u001B[0m"
                 listNonGuessLetters.add(c.uppercase())  // добавление в set не встречающихся букв
             }
         }

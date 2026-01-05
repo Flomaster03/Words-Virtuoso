@@ -1,3 +1,5 @@
+package wordsvirtuoso
+
 import java.io.File
 
 val namesOfFile = mutableListOf<String>()  // путь + имя файла
@@ -43,4 +45,5 @@ fun String.findCountOfInvalidWords(): Int = File(this).readLines().count { it.is
 fun String.isInvalidInput(): Boolean = this.length != 5 || this.lowercase().contains("[^a-z]+".toRegex()) || this.lowercase().toSet().size != 5
 
 // проверка, что все слова - кандидаты имеются в файле с общими словами
-fun countContainWords(): Int = File(namesOfFile[1]).readLines().let { it.size - File(namesOfFile[0]).readLines().intersect(it.toSet()).size }
+fun countContainWords(): Int = File(namesOfFile[1]).readLines().map { it.lowercase() }
+    .let { it.size - File(namesOfFile[0]).readLines().map { it.lowercase() }.intersect(it.toSet()).size }

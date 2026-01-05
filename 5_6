@@ -1,3 +1,5 @@
+package wordsvirtuoso
+
 import java.io.File
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -30,13 +32,13 @@ fun checkInput(args: Array<String>): String {
     listOfCandidatesWords = File(namesOfFile[1]).readLines()
     listOfAllWords = File(namesOfFile[0]).readLines()
     secretWord = listOfCandidatesWords[Random.nextInt(0, listOfCandidatesWords.size)]
-    //  fileOfAttempts.writeText("\n") // создание файла с попытками угадать слово
     return "Words Virtuoso"
 }
 
 //обработка и проверка пользовательского слова
 fun processWord() {
-    val startTime = System.currentTimeMillis()
+    fileOfAttempts.writeText("") //очистка файла с попытками от содержимого
+    val startTime = System.currentTimeMillis() //начало отсчета времени
     while (true) {
         countMoves++
         val input = "\nInput a 5-letter word:".toInput()
@@ -44,13 +46,14 @@ fun processWord() {
             println("The game is over.")
             break
         }
-        val checkedInput = checkWord(input)
+        val checkedInput = checkWord(input) //проверка вводимого слова - попытки на валидность
         if (checkedInput.isNotEmpty()) {   //введенное слово не валидно
             println(checkedInput)
             continue
+            // если слово валидно, начинается проверка слова и действия с ним
         } else {
             fileOfAttempts.appendText("\n${processWord(input)}")
-            println(fileOfAttempts.readText())
+            println("\n${fileOfAttempts.readText()}")
             if (input == secretWord) {
                 processWin(startTime)
                 break
@@ -85,8 +88,8 @@ fun String.isInvalidInput(): Boolean =
     this.length != 5 || this.lowercase().contains("[^a-z]+".toRegex()) || this.lowercase().toSet().size != 5
 
 // проверка, что все слова - кандидаты имеются в файле с общими словами
-fun countContainWords(): Int =
-    File(namesOfFile[1]).readLines().let { it.size - File(namesOfFile[0]).readLines().intersect(it.toSet()).size }
+fun countContainWords(): Int = File(namesOfFile[1]).readLines().map { it.lowercase() }
+    .let { it.size - File(namesOfFile[0]).readLines().map { it.lowercase() }.intersect(it.toSet()).size }
 
 //проверка угадывающего слова на валидность
 fun checkWord(input: String): String {
@@ -99,12 +102,12 @@ fun checkWord(input: String): String {
     }
 }
 
-//сравнение пользовательского слова с секретным и вывод строки с имеющимися совпадениями
+//сравнение пользовательского слова с секретным и возвращение строки с имеющимися совпадениями
 fun processWord(input: String): String = input.mapIndexed { i, c ->
     if (c == secretWord[i]) c.uppercase().single() else if (secretWord.contains(c)) c else '_'
 }.joinToString("")
 
-//печать заключительных строк при выигыше
+//печать заключительных строк при выигрыше
 fun processWin(startTime: Long) {
     val endTime = System.currentTimeMillis()
     val duration = ((endTime - startTime) / 1000.0).roundToInt()
@@ -116,5 +119,6 @@ fun processWin(startTime: Long) {
 }
 
 // добавление в set не встречающихся букв
-fun processNonGuess(input: String) = input.forEach { if (!secretWord.contains(it)) listNonGuessLetters.add(it.uppercase()) }
+fun processNonGuess(input: String) =
+    input.forEach { if (!secretWord.contains(it)) listNonGuessLetters.add(it.uppercase()) }
 
